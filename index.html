@@ -68,6 +68,11 @@
       <!--Displaying multiple lessons -->  
       <section class="lessons" aria-live="polite">  
         <article class="card" v-for="lesson in sortedLessons" :key="lesson.id">  
+          <!--lesson image-->
+          <div class="thumbnail" aria-hidden="true" v-if="lesson.image">
+            <img :src="lesson.image" :alt="lesson.subject + ' thumbnail'">
+          </div>
+          
           <div class="card-header">
             <div>
               <h2 class="lesson-title">{{ lesson.subject }}</h2> 

@@ -233,6 +233,27 @@ button.primary[disabled] { background: #bcd4ff; box-shadow:none; cursor:not-allo
   font-size:14px;
 }
 
+/* thumbnail styling for the lesson image */ 
+.thumbnail {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(180deg,#f7fafc,#eef6ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px; 
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* fill crop */
+  display: block;
+  background: #ffffff;  
+}
+
 /* No-results message (spans grid) */
 .no-results {
   grid-column: 1 / -1;
