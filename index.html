@@ -49,6 +49,17 @@
                 <label><input type="radio" v-model="sortDir" value="desc" /> Descending</label>
               </div>
             </div>
+
+            <!-- Search input --> 
+             <div class = "controls-row search-row">
+              <label for=" search" class="sort-label" style="margin-right: 8px;">Search:</label>
+              <input id="search"
+                  class="search-input"
+                  type="search"
+                  v-model.trim="searchQuery"
+                  placeholder="Type the lesson you want to enroll in"
+                  aria-label="Search lesson by subject">
+             </div>
           </div>
           
           <div class="total-lessons">Total Lessons: {{ lessons.length }}</div>
@@ -173,6 +184,7 @@
         cart: [],
         sortKey: 'subject',
         sortDir: 'asc',
+        searchQuery: '',
         showProductPage: true,
         order: { name: '', phone: '' } //adding order object
       },
@@ -185,23 +197,55 @@
         }  
       },
       computed: {
-        //Sorts the lessons based on the key and direction
+        //Sorts the lessons 
         sortedLessons() {
-          const arr = this.lessons.slice();
+          // filter by searchQuery
+          const q = (this.searchQuery || '').trim().toLowerCase();
+          let arr = this.lesson.slice();
+          if (q)  {
+            arr = arr.filter(l => {
+              const s = (l.subject || '').toString().toLowerCase();
+              return s.include(q)
+            })
+          }
+
           const key = this.sortKey;
           const dir = this.sortDir === 'asc' ? 1 : -1;
+
+          const getValue = (lesson) => {
+            if (!lesson) return null;
+            if (key === 'spaces') return this.remainingSpaces(lesson);
+            return typeof lesson[key] !== 'undefined' ? lesson[key] : null;
+          };
+
           arr.sort((a,b) =>  {
-            let va = a[key];  
-            let vb = b[key];  
-            if (typeof va === 'string') va = va.toLowerCase();  
-            if (typeof vb === 'string') vb = vb.toLowerCase();  
-            if (va > vb) return 1 * dir;  
-            if (va < vb) return -1 * dir;  
-            return 0;
+            const va = getValue(a);  
+            const vb = getValue(b);
+            
+            //handle nulls
+            if (va === null && vb === null) return 0;
+            if (va === null) return 1 * dir;
+            if (vb === null) reurn -1 * dir;
+
+            //compare if both are numeric
+            const aNum = Number(va);
+            const bNum = Number(vb);
+            const bothNumeric = !Number.isNaN(aNum) && !Number.isNaN(bNum);
+
+            if (bothNumeric) {
+              if (aNum > bNum) return 1 * dir;
+              if (aNum < bNum) return -1 * dir;
+              return 0;
+            }
+
+            //compare if string
+            const sa = String(va).toLowerCase();
+            const sb = String(vb).toLowerCase();
+            return sa.localeCompare(sb) * dir;
           });
           return arr;
         },
-        // Summary of cart items by ID and quantity  
+        //summary of cart items by ID and quantity  
         cartSummary() {  
           const summary = {};  
           this.cart.forEach(id => { summary[id] = (summary[id] || 0) + 1; });  
