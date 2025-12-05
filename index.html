@@ -52,7 +52,7 @@
 
             <!-- Search input --> 
              <div class = "controls-row search-row">
-              <label for=" search" class="sort-label" style="margin-right: 8px;">Search:</label>
+              <label for="search" class="sort-label" style="margin-right: 8px;">Search:</label>
               <input id="search"
                   class="search-input"
                   type="search"
@@ -201,12 +201,12 @@
         sortedLessons() {
           // filter by searchQuery
           const q = (this.searchQuery || '').trim().toLowerCase();
-          let arr = this.lesson.slice();
+          let arr = this.lessons.slice();
           if (q)  {
             arr = arr.filter(l => {
               const s = (l.subject || '').toString().toLowerCase();
-              return s.include(q)
-            })
+              return s.includes(q)
+            });
           }
 
           const key = this.sortKey;
@@ -225,7 +225,7 @@
             //handle nulls
             if (va === null && vb === null) return 0;
             if (va === null) return 1 * dir;
-            if (vb === null) reurn -1 * dir;
+            if (vb === null) return -1 * dir;
 
             //compare if both are numeric
             const aNum = Number(va);
