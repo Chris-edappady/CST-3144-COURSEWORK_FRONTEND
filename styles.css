@@ -185,9 +185,9 @@ header .ghost:hover {
 .card-spaces .price { font-weight:700; font-size:15px; color:#0b1220; }
 
 /* rating row — use FA stars; keep gold for filled */
-.rating { display:flex; align-items:center; gap:6px; margin-top:6px; }
+.rating { display:flex; align-items:center; gap:6px; margin-top:6px; line-height:1;}
 .rating i { font-size:14px; }
-.rating .filled { color:#f59e0b; }   /* amber/gold */
+.rating .filled { color:#f59e0b; line-height:1;}   /* amber/gold */
 .rating .empty  { color:#d1d5db; }  /* light gray */
 .rating-label { font-size:13px; color:#6b7280; margin-left:6px; }
 
