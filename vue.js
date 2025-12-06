@@ -2,8 +2,8 @@
     var webstore = new Vue ({
       el: '#app',
       data: {
-        sitename: 'Lessons',
-        lessons: (typeof lessons !== 'undefined') ? lessons : [],
+        sitename: 'Campus Lessons',
+        lessons: [],
         cart: [],
         sortKey: 'subject',
         sortDir: 'asc',
@@ -12,12 +12,13 @@
         order: { name: '', phone: '' } //adding order object
       },
       created() {  
-        //Checks if the lessons data is loaded  
-        if (typeof lessons !== 'undefined' && Array.isArray(lessons) && lessons.length) {  
-          this.lessons = lessons;  
-        } else {  
-          console.warn('lessons.js not found or empty');  
-        }  
+        // Fetch lessons from backend
+        fetch('http://localhost:3000/api/lessons')
+        .then(response => response.json())
+        .then(data => {
+        this.lessons = data;
+        })
+        .catch(err => console.error('Error fetching lessons:', err));  
       },
       computed: {
         //Sorts the lessons 
