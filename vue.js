@@ -12,9 +12,8 @@
         order: { name: '', phone: '' } //adding order object
       },
       created() {  
-        // Fetch lessons from backend
-        fetch('http://localhost:3000/api/lessons')
-        .then(response => response.json())
+        // Fetch lessons using getLessons
+        getLessons()
         .then(data => {
         this.lessons = data;
         })
@@ -24,48 +23,24 @@
         //Sorts the lessons 
         sortedLessons() {
           // filter by searchQuery
-          const q = (this.searchQuery || '').trim().toLowerCase();
           let arr = this.lessons.slice();
+          const q = (this.searchQuery || '').trim().toLowerCase();
           if (q)  {
-            arr = arr.filter(l => {
-              const s = (l.subject || '').toString().toLowerCase();
-              return s.includes(q)
-            });
+            arr = arr.filter(l => (l.subject || '').toLowerCase().includes(q));
+              
           }
 
-          const key = this.sortKey;
-          const dir = this.sortDir === 'asc' ? 1 : -1;
-
-          const getValue = (lesson) => {
-            if (!lesson) return null;
-            if (key === 'spaces') return this.remainingSpaces(lesson);
-            return typeof lesson[key] !== 'undefined' ? lesson[key] : null;
-          };
-
+          const dir = this.sortDir === 'asc' ? 1 : -1;          
           arr.sort((a,b) =>  {
-            const va = getValue(a);  
-            const vb = getValue(b);
+            let va = this.sortKey === 'spaces' ? this.remainingSpaces(a) : a[this.sortKey]; 
+            let vb = this.sortKey === 'spaces' ? this.remainingSpaces(b) : b[this.sortKey];
             
             //handle nulls
-            if (va === null && vb === null) return 0;
             if (va === null) return 1 * dir;
             if (vb === null) return -1 * dir;
 
-            //compare if both are numeric
-            const aNum = Number(va);
-            const bNum = Number(vb);
-            const bothNumeric = !Number.isNaN(aNum) && !Number.isNaN(bNum);
-
-            if (bothNumeric) {
-              if (aNum > bNum) return 1 * dir;
-              if (aNum < bNum) return -1 * dir;
-              return 0;
-            }
-
-            //compare if string
-            const sa = String(va).toLowerCase();
-            const sb = String(vb).toLowerCase();
-            return sa.localeCompare(sb) * dir;
+            if (!isNaN(va) && !isNaN(vb)) return (va - vb) * dir;
+            return String(va).localeCompare(String(vb)) * dir;
           });
           return arr;
         },
@@ -79,7 +54,7 @@
         cartTotal() {  
           return this.cart.reduce((sum, id) => {  
             const lesson = this.lessons.find(l => l.id === +id);  
-            return sum + (lesson ? lesson.price : 0);  
+            return sum + (lesson ? Number(lesson.price) : 0);  
           }, 0);  
         },
         //Checks for valid name input  
@@ -93,7 +68,7 @@
         // Calculate remaining spaces for a lesson  
         remainingSpaces(lesson) {  
           const used = this.cartCount(lesson.id);  
-          return Math.max(0, lesson.spaces - used);  
+          return Math.max(0, Number(lesson.spaces) - used);  
         },
         // Check if add to cart is possible  
         canAddToCart(lesson) {  
@@ -109,20 +84,40 @@
         toggleCheckoutPage(){
           this.showProductPage = !this.showProductPage;
         },
-        //Get lesson by ID with fallback
-        lessonById(id) { return this.lessons.find(l => l.id === +id) || { subject:'Unknown', location:'', price:0 }; },
+        // Returns the lesson object for a given ID.
+        lessonById(id) {
+          return this.lessons.find(l => l.id === +id) || { subject:'Unknown', location:'', price:0 };
+        },
         // Remove one instance of item from cart
         removeOneFromCart(id) {
           const idx = this.cart.indexOf(+id);
           if (idx !== -1) this.cart.splice(idx, 1);
         },
-        //Submits order and resets
-        checkoutSubmit() {  
-          if (!this.canCheckout) return;  
-          alert('Order submitted — Thank you!');  
-          this.cart = [];  
-          this.order = { name: '', phone: '' };  
-          this.showProductPage = true;  
-        },
+        //Submits order to backend
+        async checkoutSubmit() {  
+          const orderData = {
+            name: this.order.name,
+            phone: this.order.phone,
+            cart: this.cart
+        };
+
+        try{
+          const result = await postOrder(orderData);
+          if (result.success) {
+            alert('Order submitted — Thank you!');
+            this.cart = [];
+            this.order = { name: '', phone: '' };
+            this.showProductPage = true;
+
+            //Refresh lessons to show updated spaces
+            this.lessons = await getLessons();
+        } else {
+          alert('Failed to submit order.');
+        }
+      } catch (err) {
+        console.error('Order error:', err);
+        alert('Error submitting order.');
       }
-    });
+    }
+  }
+});
